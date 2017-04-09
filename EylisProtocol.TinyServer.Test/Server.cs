@@ -14,22 +14,21 @@ namespace ConsoleApplication1
 {
     class Program
     {
-        public class ReceiveEventArgs : EventArgs
-        {
-            public ReceiveEventArgs(Message message)
-            {
-                this.Message = message;
-            }
-
-            public Message Message { get; private set; }
-        }
+        
         public class Message
         {
+            public static Message operator +(Message l, Message r)
+                => new Message(l.Data.Concat(r.Data).ToArray());
+            public static Message operator +(Message l, string r)
+                => new Message(l.Data.Concat(l.Encoding.GetBytes(r)).ToArray());
+            public static Message operator +(string l, Message r)
+                => new Message(r.Encoding.GetBytes( l).Concat(r.Data).ToArray());
+
             public byte[] Data { get; private set; }
             public Encoding Encoding { get; private set; }
-            public static explicit operator Message(string message)
+            public static implicit operator Message(string message)
                 => new Message(Encoding.UTF8.GetBytes(message));
-            public static explicit operator Message(byte[] data)
+            public static implicit operator Message(byte[] data)
                 => new Message(data);
 
             public Message(byte[] data, Encoding encoding)
@@ -47,23 +46,50 @@ namespace ConsoleApplication1
                 => this.Encoding.GetString(this.Data);
 
         }
-        class User 
+        public class User 
         {
+            public class ReceiveEventArgs : EventArgs
+            {
+                public ReceiveEventArgs(Message message)
+                {
+                    this.Message = message;
+                }
+
+                public Message Message { get; private set; }
+            }
+
+            public override int GetHashCode()
+                => this.UID.GetHashCode();
+            
+            public override bool Equals(object obj)
+            {
+                var o = obj as User;
+                return ( o != null) ? o.GetHashCode() == this.GetHashCode():false;
+                
+            }
+
+            internal delegate void DisconnectEventHandler(User sender);
+            internal event DisconnectEventHandler OnDisconnecting;
+
             public delegate void ReceiveEventHandler(object sender, ReceiveEventArgs e);
             public event ReceiveEventHandler OnReceived;
             public User(TcpClient client,Encoding encoding = null , ReceiveEventHandler onReceived = null)
             {
+                this.UID = Guid.NewGuid();
                 this.client = client;
                 this.Encoding = encoding ?? Encoding.UTF8;
                 if (onReceived != null)
                     this.OnReceived += onReceived;
-                var ns = client.GetStream();
-                this.reader = new StreamReader(ns,this.Encoding);
-                this.writer = new StreamWriter(ns, this.Encoding);
-                this.token = new CancellationTokenSource(0);
+                this.ns = client.GetStream();
+                this.reader = new StreamReader(this.ns,this.Encoding);
+                this.writer = new StreamWriter(this.ns, this.Encoding);
+                this.token = new CancellationTokenSource();
+                this.Listen();
             }
-            public EndPoint Host => this.client?.Client?.RemoteEndPoint;
+            public readonly Guid UID;
+            public EndPoint RemoteEndPoint => this.client?.Client?.RemoteEndPoint;
             public Encoding Encoding { get; private set; }
+            private NetworkStream ns;
             private StreamReader reader;
             private StreamWriter writer;
             private CancellationTokenSource token;
@@ -75,9 +101,10 @@ namespace ConsoleApplication1
             }
             public void Close()
             {
+                this.OnDisconnecting?.Invoke(this);
                 if (!this.token.IsCancellationRequested)
-                    this.token.Cancel();
-                if(this.client.Connected)
+                    this.token.Cancel(false);
+                if (this.client.Connected)
                     this.client.Close();
             }
             private void Listen()
@@ -96,154 +123,86 @@ namespace ConsoleApplication1
                     catch
                     {
                         //遠端連線終止
-                        if (!token.IsCancellationRequested)
-                        token.Cancel();
+                        this.Close();
                     }
                 },this.token.Token);
                 t.Start();
             }
-            
+
+
         }
-
-
-        class Server:List<User>
+        class Server : HashSet<User>
         {
             public static Server CreateHost(ushort port = 11222)
                 => new Server(port);
             private TcpListener host;
-            private Task listenTask;
+            // private Task listenTask;
             private CancellationTokenSource token;
             private Server(ushort port)
             {
                 this.host = new TcpListener(IPAddress.Any, port);
-                this.token = new CancellationTokenSource(0);
+                this.token = new CancellationTokenSource();
             }
-            public void Start()
+            public async Task Start()
             {
+                Console.WriteLine("server start");
                 this.host.Start();
-                listenTask = new Task(() => 
+                var listenTask = new Task(() =>
                 {
-                    var client = default(TcpClient);
-                    while(true)
+                    try
                     {
-                        client = this.host.AcceptTcpClient();
-                        this.Add(new User(client));
+                        while (true)
+                        {
+                            var client = this.host.AcceptTcpClient();
+
+                            var user = new User(client);
+                            user.OnDisconnecting += (sender) =>
+                            {
+                                this.Remove(sender);
+                                this.Broadcast((Message)$"[Server] '{sender.RemoteEndPoint}' is disconnect");
+                            };
+                            user.OnReceived += (sender, e) => this.Broadcast($"[{(sender as User).RemoteEndPoint}]"+e.Message);
+                            this.Broadcast((Message)$"[Server] '{user.RemoteEndPoint}' is connect");
+                            this.Add(user);
+
+                        }
+                    
+
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                        this.Stop();
                     }
                 }, token.Token);
                 listenTask.Start();
+                await listenTask;
             }
             public void Stop()
             {
-                this.token.Cancel(false);
+                if (!this.token.IsCancellationRequested)
+                    this.token.Cancel(false);
                 this.host.Stop();
+                Console.WriteLine("server stop");
+            }
+            public TLog Log<TLog>(TLog history)
+            {
+                Console.WriteLine($"[{DateTime.Now}] : {history}");
+                return history;
+            }
+            public void Broadcast(Message message)
+            {
+                var list = this.ToList();
+                    list.ForEach(user => user.Send(this.Log( message)));
             }
         }
-        public static Hashtable clientsList = new Hashtable();
-
+        
         static void Main(string[] args)
         {
-            TcpListener serverSocket = new TcpListener(IPAddress.Any, 11222);
-            TcpClient clientSocket = default(TcpClient);
-            int counter = 0;
-            serverSocket.Start();
-            while ((true))
-            {
-                counter += 1;
-                clientSocket = serverSocket.AcceptTcpClient();
-
-                byte[] bytesFrom = new byte[10025];
-                string dataFromClient = null;
-
-                NetworkStream networkStream = clientSocket.GetStream();
-                networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
-                dataFromClient = System.Text.Encoding.UTF8.GetString(bytesFrom);
-                dataFromClient = dataFromClient.Substring(0, dataFromClient.Length).Trim();
-
-                clientsList.Add(dataFromClient, clientSocket);
-
-                broadcast(dataFromClient + " Joined ", dataFromClient, false);
-
-                Console.WriteLine(dataFromClient + " Joined chat room ");
-                handleClinet client = new handleClinet();
-                client.startClient(clientSocket, dataFromClient, clientsList);
-            }
-
-            clientSocket.Close();
-            serverSocket.Stop();
-            Console.WriteLine("exit");
-            Console.ReadLine();
+            Server server = Server.CreateHost();
+            server.Start();
+            Console.ReadKey();
         }
-
-        public static void broadcast(string msg, string uName, bool flag)
-        {
-            foreach (DictionaryEntry Item in clientsList)
-            {
-                TcpClient broadcastSocket;
-                broadcastSocket = (TcpClient)Item.Value;
-                NetworkStream broadcastStream = broadcastSocket.GetStream();
-                Byte[] broadcastBytes = null;
-
-                if (flag == true)
-                {
-                    broadcastBytes = Encoding.ASCII.GetBytes(uName + " says : " + msg);
-                }
-                else
-                {
-                    broadcastBytes = Encoding.ASCII.GetBytes(msg);
-                }
-
-                broadcastStream.Write(broadcastBytes, 0, broadcastBytes.Length);
-                broadcastStream.Flush();
-            }
-        }  //end broadcast function
-    }//end Main class
-
-
-    public class handleClinet
-    {
-        TcpClient clientSocket;
-        string clNo;
-        Hashtable clientsList;
-
-        public void startClient(TcpClient inClientSocket, string clineNo, Hashtable cList)
-        {
-            this.clientSocket = inClientSocket;
-            this.clNo = clineNo;
-            this.clientsList = cList;
-            Thread ctThread = new Thread(doChat);
-            ctThread.Start();
-        }
-
-        private void doChat()
-        {
-            int requestCount = 0;
-            byte[] bytesFrom = new byte[10025];
-            string dataFromClient = null;
-            Byte[] sendBytes = null;
-            string serverResponse = null;
-            string rCount = null;
-            requestCount = 0;
-
-            while ((true))
-            {
-                try
-                {
-                    requestCount = requestCount + 1;
-                    NetworkStream networkStream = clientSocket.GetStream();
-                    networkStream.Read(bytesFrom, 0, (int)clientSocket.ReceiveBufferSize);
-                    dataFromClient = System.Text.Encoding.ASCII.GetString(bytesFrom);
-                    dataFromClient = dataFromClient.Substring(0, dataFromClient.Trim().Length);
-                    Console.WriteLine("From client - " + clNo + " : " + dataFromClient);
-                    rCount = Convert.ToString(requestCount);
-
-                    Program.broadcast(dataFromClient, clNo, true);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.ToString());
-                    break;
-                }
-            }//end while
-        }//end doChat
-    } //end class handleClinet
+        
+    }
 }//end namespace
