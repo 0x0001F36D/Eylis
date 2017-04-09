@@ -10,80 +10,82 @@ namespace EylisProtocol.Infrastructure
     using System.Text;
     using System.Threading.Tasks;
     using System.IO;
+    using System.Threading;
+    using System.Collections;
+    using EylisProtocol.Extension;
 
-    public class EylisServer //: List<EylisUser>, IObserver<EylisUser>
+    public class EylisServer : IReadOnlyCollection<EylisUser>
     {
-        public string Name { get; private set; }
+        private HashSet<EylisUser> users;
         private TcpListener host;
-        public static EylisServer Prepare(ushort port,string serverName)
-            =>new EylisServer(port,serverName);
-        
-        private EylisServer(ushort port ,string serverName)
-        {
-            this.host = new TcpListener(new IPEndPoint(IPAddress.Any, port));
-            this.Name = serverName;
-        }
+        private CancellationTokenSource token;
 
-        public async Task Start()
+        public int Count => this.users.Count;
+
+        public EylisServer()
         {
-            host.Start();
-            Task listen = new Task(() =>
+            this.users = new HashSet<EylisUser>();
+            this.host = new TcpListener(IPAddress.Any, EylisConfig.port);
+            this.token = new CancellationTokenSource();
+        }
+        public void Start()
+        {
+            this.host.Start();
+            var listenTask = new Task(() =>
             {
                 try
                 {
                     while (true)
                     {
                         var client = this.host.AcceptTcpClient();
-                        if (client.Connected)
+                        var user = new EylisUser(client);
+                        user.OnDisconnecting += (sender) =>
                         {
-                            Console.WriteLine("Connect : "+client.Client.RemoteEndPoint);
-                            var ns = client.GetStream();
-                            if(ns.CanRead)
-                            {
-                                using (var reader = new BinaryReader(ns))
-                                {
-                                    var fromClient = reader.ReadBytes(client.ReceiveBufferSize);
-                                    var toClient = Encoding.UTF8.GetBytes("FromServer : ").Concat(fromClient).ToArray();
-                                    if (ns.CanWrite)
-                                    {
-                                        using (var writer = new BinaryWriter(ns))
-                                        {
-                                            writer.Write(toClient);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                            this.users.Remove(sender);
+                           // this.Broadcast($"[Server] '{sender.RemoteEndPoint}' is disconnect");
+                        };
+                        user.OnReceived += (sender, e) => this.Multicast($"[{sender.RemoteEndPoint}]" + e.Message, x => !x.Equals(sender));
+
+                        this.users.Add(user);
+                       // this.Broadcast($"[Server] '{user.RemoteEndPoint}' is connect");
+
                     }
                 }
-                catch(SocketException se)
+                catch (Exception e)
                 {
-                    Console.WriteLine(se.Message);
+                    Console.WriteLine(e.Message);
+                    this.Stop();
                 }
-            });
-            listen.Start();
-            
-            await listen;
-        }
+            }, token.Token);
+            listenTask.Start();
 
+        }
         public void Stop()
         {
-            host.Stop();
+            if (!this.token.IsCancellationRequested)
+                this.token.Cancel(false);
+            this.host.Stop();
         }
 
-        public void OnNext(EylisUser value)
+        private TLog Log<TLog>(TLog history)
         {
-            throw new NotImplementedException();
+            Console.WriteLine($"[{DateTime.Now}] : {history}");
+            return history;
         }
 
-        public void OnError(Exception error)
-        {
-            throw new NotImplementedException();
-        }
+        public void Pointcast(EylisMessage message, EylisUser user)
+            => this.users.FirstOrDefault(x => x.Equals(user))?.Send(message);
 
-        public void OnCompleted()
-        {
-            throw new NotImplementedException();
-        }
+        public void Multicast(EylisMessage message, Func<EylisUser, bool> selector)
+            => this.users.Where(selector).ForEach(u => u.Send(message));
+
+        public void Broadcast(EylisMessage message)
+            => this.users.ForEach(user => user.Send(message));
+
+        public IEnumerator<EylisUser> GetEnumerator()
+            => this.users.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => this.GetEnumerator();
     }
 }

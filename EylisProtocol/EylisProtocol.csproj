@@ -40,7 +40,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extension\EylisExtension.cs" />
     <Compile Include="Infrastructure\EylisServer.cs" />
+    <Compile Include="Object\EylisConfig.cs" />
     <Compile Include="Object\EylisMessage.cs" />
     <Compile Include="Object\EylisUser.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
