@@ -12,12 +12,6 @@ namespace Eylis.Core.Protocol
         public static EylisMessage operator +(EylisMessage l, EylisMessage r)
             => new EylisMessage(l.Data.Concat(r.Data).ToArray());
 
-        public static EylisMessage operator +(EylisMessage l, string r)
-            => new EylisMessage(l.Data.Concat(l.Encoding.GetBytes(r)).ToArray());
-
-        public static EylisMessage operator +(string l, EylisMessage r)
-            => new EylisMessage(r.Encoding.GetBytes(l).Concat(r.Data).ToArray());
-
         public byte[] Data { get; private set; }
         public Encoding Encoding => Encoding.UTF8;
         public static implicit operator EylisMessage(string message)
