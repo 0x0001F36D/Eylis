@@ -13,6 +13,7 @@ namespace EylisProtocol.Infrastructure
     using System.Threading;
     using System.Collections;
     using EylisProtocol.Extension;
+    using System.Net.NetworkInformation;
 
     public class EylisServer : IReadOnlyCollection<EylisUser>
     {
@@ -22,8 +23,19 @@ namespace EylisProtocol.Infrastructure
 
         public int Count => this.users.Count;
 
+        private bool Detect()
+            => IPGlobalProperties.GetIPGlobalProperties()
+                                    .GetActiveTcpListeners()
+                                    .Where(x => x.Address.Equals(IPAddress.Any))
+                                    .Any(x => x.Port == EylisConfig.port);
+        
+
         public EylisServer()
         {
+            if (this.Detect())
+            {
+                Environment.Exit(-1);
+            }
             this.users = new HashSet<EylisUser>();
             this.host = new TcpListener(IPAddress.Any, EylisConfig.port);
             this.token = new CancellationTokenSource();
@@ -73,7 +85,7 @@ namespace EylisProtocol.Infrastructure
             return history;
         }
 
-        public void Pointcast(EylisMessage message, EylisUser user)
+        public void Unicast(EylisMessage message, EylisUser user)
             => this.users.FirstOrDefault(x => x.Equals(user))?.Send(message);
 
         public void Multicast(EylisMessage message, Func<EylisUser, bool> selector)

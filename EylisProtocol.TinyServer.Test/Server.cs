@@ -13,6 +13,7 @@ namespace EylisProtocol.TinyServer.Test
     using System.Runtime.InteropServices;
     using System.Linq;
     using EylisProtocol.Infrastructure;
+    using System.Net.NetworkInformation;
 
     class Program
     {
@@ -20,6 +21,7 @@ namespace EylisProtocol.TinyServer.Test
         {
             var server = new EylisServer();
             server.Start();
+
             Console.ReadKey();
         }
         
