@@ -45,7 +45,6 @@
     <Compile Include="Core\EylisConfig.cs" />
     <Compile Include="Core\Protocol\EylisMessage.cs" />
     <Compile Include="Core\EylisUser.cs" />
-    <Compile Include="Plugin\.cs" />
     <Compile Include="Plugin\Database.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
