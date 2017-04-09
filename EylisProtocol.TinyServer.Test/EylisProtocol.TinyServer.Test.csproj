@@ -32,6 +32,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Eylis">
+      <HintPath>..\EylisProtocol\bin\Debug\Eylis.dll</HintPath>
+    </Reference>
     <Reference Include="EylisProtocol">
       <HintPath>..\EylisProtocol\bin\Debug\EylisProtocol.dll</HintPath>
     </Reference>

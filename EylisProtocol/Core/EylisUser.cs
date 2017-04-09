@@ -1,5 +1,5 @@
 ﻿
-namespace EylisProtocol.Object
+namespace Eylis.Core
 {
     using System;
     using System.Collections.Generic;
@@ -10,6 +10,7 @@ namespace EylisProtocol.Object
     using System.Net;
     using System.Threading;
     using System.IO;
+    using Eylis.Core.Protocol;
 
     public class EylisUser
     {

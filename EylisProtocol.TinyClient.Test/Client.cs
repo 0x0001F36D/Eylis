@@ -1,5 +1,5 @@
 ﻿
-namespace EylisProtocol.TinyClient.Test
+namespace Eylis.TinyClient.Test
 {
     using System;
     using System.IO;
@@ -8,7 +8,7 @@ namespace EylisProtocol.TinyClient.Test
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
-    using EylisProtocol.Object;
+    using Eylis.Core;
 
     class Client
     {
@@ -16,11 +16,11 @@ namespace EylisProtocol.TinyClient.Test
         {
             try
             {
-                var user = EylisUser.Connect(EylisConfig.Localhost, (sender, e) => { Console.WriteLine(e.Message.ToString()); });
+                var user = EylisUser.Connect(new EylisConfig("lollipo.pw"), (sender, e) => { Console.WriteLine(e.Message.ToString()); });
                 while (true)
                 {
                     var msg = Console.ReadLine();
-                    if (msg.Trim().ToLower() == "esc") break;
+                    if (msg.Trim().ToLower().Contains("exit")) break;
                     user.Send(msg);
                 }
                 Console.ReadKey();

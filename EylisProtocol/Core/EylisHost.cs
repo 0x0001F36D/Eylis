@@ -1,21 +1,19 @@
 ﻿
-namespace EylisProtocol.Infrastructure
+namespace Eylis.Core
 {
-    using EylisProtocol.Object;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
-    using System.Text;
     using System.Threading.Tasks;
-    using System.IO;
     using System.Threading;
     using System.Collections;
-    using EylisProtocol.Extension;
     using System.Net.NetworkInformation;
+    using Eylis.Core.Protocol;
+    using Eylis.Core.Extension;
 
-    public class EylisServer : IReadOnlyCollection<EylisUser>
+    public class EylisHost : IReadOnlyCollection<EylisUser>
     {
         private HashSet<EylisUser> users;
         private TcpListener host;
@@ -30,7 +28,7 @@ namespace EylisProtocol.Infrastructure
                                     .Any(x => x.Port == EylisConfig.port);
         
 
-        public EylisServer()
+        public EylisHost()
         {
             if (this.Detect())
             {
@@ -51,6 +49,7 @@ namespace EylisProtocol.Infrastructure
                     {
                         var client = this.host.AcceptTcpClient();
                         var user = new EylisUser(client);
+                        /**/
                         user.OnDisconnecting += (sender) =>
                         {
                             this.users.Remove(sender);

@@ -1,5 +1,5 @@
 ﻿
-namespace EylisProtocol.Object
+namespace Eylis.Core.Protocol
 {
     using System;
     using System.Collections.Generic;

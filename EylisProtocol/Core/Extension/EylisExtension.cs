@@ -1,7 +1,6 @@
 ﻿
-namespace EylisProtocol.Extension
+namespace Eylis.Core.Extension
 {
-    using EylisProtocol.Object;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -12,8 +11,8 @@ namespace EylisProtocol.Extension
     {
         public static void ForEach<R>(this IEnumerable<R> collection, Action<R> action)
         {
-            foreach (var item in collection) action(item);
+            foreach (var item in collection)
+                action(item);
         }
-        
     }
 }

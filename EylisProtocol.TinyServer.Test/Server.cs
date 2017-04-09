@@ -1,29 +1,19 @@
 ﻿
-namespace EylisProtocol.TinyServer.Test
-{ 
+namespace Eylis.TinyServer.Test
+{
+    using Eylis.Core;
     using System;
-    using System.Threading;
-    using System.Net;
-    using System.Net.Sockets;
-    using System.Text;
-    using System.Collections;
-    using System.Threading.Tasks;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Runtime.InteropServices;
-    using System.Linq;
-    using EylisProtocol.Infrastructure;
-    using System.Net.NetworkInformation;
 
     class Program
     {
         static void Main(string[] args)
         {
-            var server = new EylisServer();
+            
+            var server = new EylisHost();
             server.Start();
-
+            
             Console.ReadKey();
         }
         
     }
-}//end namespace
+}

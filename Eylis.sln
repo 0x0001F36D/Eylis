@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EylisProtocol", "EylisProtocol\EylisProtocol.csproj", "{15406210-5DBE-4113-BCFA-A5AAE8CC2542}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eylis", "EylisProtocol\Eylis.csproj", "{15406210-5DBE-4113-BCFA-A5AAE8CC2542}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EylisProtocol.TinyServer.Test", "EylisProtocol.TinyServer.Test\EylisProtocol.TinyServer.Test.csproj", "{BF6438BF-FD10-4C6E-8277-68955334BF1F}"
 	ProjectSection(ProjectDependencies) = postProject

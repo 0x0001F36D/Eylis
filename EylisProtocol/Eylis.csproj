@@ -7,8 +7,8 @@
     <ProjectGuid>{15406210-5DBE-4113-BCFA-A5AAE8CC2542}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>EylisProtocol</RootNamespace>
-    <AssemblyName>EylisProtocol</AssemblyName>
+    <RootNamespace>Eylis</RootNamespace>
+    <AssemblyName>Eylis</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -40,11 +40,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extension\EylisExtension.cs" />
-    <Compile Include="Infrastructure\EylisServer.cs" />
-    <Compile Include="Object\EylisConfig.cs" />
-    <Compile Include="Object\EylisMessage.cs" />
-    <Compile Include="Object\EylisUser.cs" />
+    <Compile Include="Core\Extension\EylisExtension.cs" />
+    <Compile Include="Core\EylisHost.cs" />
+    <Compile Include="Core\EylisConfig.cs" />
+    <Compile Include="Core\Protocol\EylisMessage.cs" />
+    <Compile Include="Core\EylisUser.cs" />
+    <Compile Include="Plugin\.cs" />
+    <Compile Include="Plugin\Database.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
