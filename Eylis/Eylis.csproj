@@ -45,7 +45,11 @@
     <Compile Include="Core\EylisConfig.cs" />
     <Compile Include="Core\Protocol\EylisMessage.cs" />
     <Compile Include="Core\EylisUser.cs" />
-    <Compile Include="Plugin\Database.cs" />
+    <Compile Include="Plugin\Command\Common\Enum.cs" />
+    <Compile Include="Plugin\Package\Bind.cs" />
+    <Compile Include="Plugin\Package\Chat.cs" />
+    <Compile Include="Plugin\Package\ISession.cs" />
+    <Compile Include="Plugin\Package\Session.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -24,16 +24,14 @@ namespace Eylis.Core
         private bool Detect()
             => IPGlobalProperties.GetIPGlobalProperties()
                                     .GetActiveTcpListeners()
-                                    .Where(x => x.Address.Equals(IPAddress.Any))
-                                    .Any(x => x.Port == EylisConfig.port);
+                                    .Any(x => x.Address.Equals(IPAddress.Any) & x.Port == EylisConfig.port);
         
 
         public EylisHost()
         {
             if (this.Detect())
-            {
-                Environment.Exit(-1);
-            }
+                Environment.Exit(0);
+            
             this.users = new HashSet<EylisUser>();
             this.host = new TcpListener(IPAddress.Any, EylisConfig.port);
             this.token = new CancellationTokenSource();
