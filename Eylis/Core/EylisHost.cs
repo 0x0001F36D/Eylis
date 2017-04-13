@@ -13,7 +13,7 @@ namespace Eylis.Core
     using Eylis.Core.Protocol;
     using Eylis.Core.Extension;
 
-    public class EylisHost : IReadOnlyCollection<EylisUser>,IReadOnlyList<EylisUser>
+    public class EylisHost : IReadOnlyCollection<EylisUser>, IReadOnlyList<EylisUser>
     {
         private HashSet<EylisUser> users;
         private TcpListener host;
@@ -28,7 +28,7 @@ namespace Eylis.Core
             => IPGlobalProperties.GetIPGlobalProperties()
                                     .GetActiveTcpListeners()
                                     .Any(x => x.Address.Equals(IPAddress.Any) & x.Port == port);
-        
+
 
         public EylisHost(EylisConfig config)
         {
@@ -36,11 +36,12 @@ namespace Eylis.Core
 
             if (this.Detect(this.config.Port))
             {
-                $"Port:{this.config.Port} 已被占用".WriteLog(this.config.EnableLogger);
+                if (this.config.EnableLogger)
+                    $"Port:{this.config.Port} 已被占用".WriteLog();
                 Console.ReadKey();
                 Environment.Exit(0);
             }
-            
+
             this.users = new HashSet<EylisUser>();
             this.host = new TcpListener(IPAddress.Any, this.config.Port);
             this.token = new CancellationTokenSource();
@@ -54,20 +55,24 @@ namespace Eylis.Core
                 {
                     while (true)
                     {
-                        var client = this.host.AcceptTcpClient();
-                        var user = new EylisUser(client);
-                        /**/
+                        var user = new EylisUser(this.host.AcceptTcpClient());
+                        user.OnReceived += (sender, e) =>
+                            this.Multicast(e.Message, x => !x.Equals(sender));
+                        user.OnConnecting += (sender) =>
+                            this.users.Add(sender);
                         user.OnDisconnecting += (sender) =>
-                        {
                             this.users.Remove(sender);
-                            sender.WriteLog(x => $"[Server] <{x.RemoteEndPoint}> offline.",this.config.EnableLogger);
-                           // this.Broadcast($"[Server] '{sender.RemoteEndPoint}' is disconnect");
-                        };
-                        user.OnReceived += (sender, e) => this.Multicast( e.Message.WriteLog(v=>$"[{sender.RemoteEndPoint}] : {v.ToString()}", this.config.EnableLogger), x => !x.Equals(sender));
 
-                        this.users.Add(user);
-                        // this.Broadcast($"[Server] '{user.RemoteEndPoint}' is connect");
-                        user.WriteLog(x => $"[Server] <{x.RemoteEndPoint}> online.", this.config.EnableLogger);
+                        if (this.config.EnableLogger)
+                        {
+                            user.OnReceived += (sender, e) =>
+                                 e.Message.WriteLog(v => $"[{sender.RemoteEndPoint}] : {v.ToString()}");
+                            user.OnConnecting += (sender) =>
+                                sender.WriteLog(x => $"[Server] <{x.RemoteEndPoint}> offline.");
+                            user.OnDisconnecting += (sender) =>
+                                sender.WriteLog(x => $"[Server] <{x.RemoteEndPoint}> online.");
+                        }
+                        user.Connect();
                     }
                 }
                 catch
@@ -76,23 +81,23 @@ namespace Eylis.Core
                 }
             }, token.Token);
             listenTask.Start();
-            "[Server] Start.".WriteLog(this.config.EnableLogger);
+            if (this.config.EnableLogger)
+                "[Server] Start.".WriteLog();
         }
         public virtual void Stop()
         {
             if (!this.token.IsCancellationRequested)
                 this.token.Cancel(false);
             this.host.Stop();
-            "[Server] Stop.".WriteLog(this.config.EnableLogger);
+            if (this.config.EnableLogger)
+                "[Server] Stop.".WriteLog();
         }
-        
 
         public virtual void Unicast(EylisMessage message, EylisUser user)
             => this.users.FirstOrDefault(x => x.Equals(user))?.Send(message);
 
         public virtual void Multicast(EylisMessage message, Func<EylisUser, bool> selector)
             => this.users.Where(selector).ForEach(u => u.Send(message));
-       
 
         public virtual void Broadcast(EylisMessage message)
             => this.users.ForEach(user => user.Send(message));

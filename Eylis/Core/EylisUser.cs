@@ -17,57 +17,58 @@ namespace Eylis.Core
         public class ReceiveEventArgs : EventArgs
         {
             internal protected ReceiveEventArgs(EylisMessage message)
-            {
-                this.Message = message;
-            }
-
+                => this.Message = message;
             public EylisMessage Message { get; private set; }
         }
 
         public override int GetHashCode()
-            => this.UID.GetHashCode();
+            => this.Uid.GetHashCode();
 
         public override bool Equals(object obj)
-        {
-            var o = obj as EylisUser;
-            return (o != null) ? o.GetHashCode() == this.GetHashCode() : false;
-        }
+            => (obj is EylisUser) ? (obj as EylisUser).GetHashCode() == this.GetHashCode() : base.Equals(this);
 
-        internal delegate void DisconnectEventHandler(EylisUser sender);
+        public delegate void ConnectEventHandler(EylisUser user);
+        internal event ConnectEventHandler OnConnecting;
+
+        public delegate void DisconnectEventHandler(EylisUser user);
         internal event DisconnectEventHandler OnDisconnecting;
 
         public delegate void ReceiveEventHandler(EylisUser sender, ReceiveEventArgs e);
         internal event ReceiveEventHandler OnReceived;
-        
 
-        public static EylisUser Connect(EylisConfig config , ReceiveEventHandler onReceived = null)
+        public static EylisUser Connect(EylisConfig config, ReceiveEventHandler onReceive = null, ConnectEventHandler onConnecting = null , DisconnectEventHandler onDisconnecting = null )
         {
             var tcpClient = new TcpClient();
-            tcpClient.Connect( config.Host,config.Port);
-            var user = new EylisUser(tcpClient);
-            if (onReceived != null)
-                user.OnReceived += onReceived;
+            tcpClient.Connect(config.Host, config.Port);
+            var user = new EylisUser(tcpClient,onReceive,onConnecting,onDisconnecting);
             return user;
         }
 
-        internal EylisUser(TcpClient client)
+        internal EylisUser(TcpClient client, ReceiveEventHandler onReceive = null, ConnectEventHandler onConnecting = null, DisconnectEventHandler onDisconnecting = null)
         {
-            this.UID = Guid.NewGuid();
+            this.OnReceived += onReceive;
+            this.OnConnecting += onConnecting;
+            this.OnDisconnecting += onDisconnecting;
+            this.IsConnected = false;
+            this.Uid = Guid.NewGuid();
             this.client = client;
             this.ns = client.GetStream();
             this.reader = new StreamReader(this.ns, this.Encoding);
             this.writer = new StreamWriter(this.ns, this.Encoding);
             this.token = new CancellationTokenSource();
-            this.Listen();
         }
-        public readonly Guid UID;
+
+        public bool IsConnected { get; private set; }
+        public readonly Guid Uid;
         public EndPoint RemoteEndPoint => this.client?.Client?.RemoteEndPoint;
         public Encoding Encoding => Encoding.UTF8;
+
         private NetworkStream ns;
         private StreamReader reader;
         private StreamWriter writer;
         private CancellationTokenSource token;
         private TcpClient client;
+
         public void Send(EylisMessage message)
         {
             try
@@ -77,35 +78,43 @@ namespace Eylis.Core
             }
             catch
             {
-                this.Close();
+                this.Disconnect();
             }
         }
-        public void Close()
+        public void Disconnect()
         {
             this.OnDisconnecting?.Invoke(this);
             if (!this.token.IsCancellationRequested)
                 this.token.Cancel(false);
             if (this.client.Connected)
                 this.client.Close();
+            this.IsConnected = false;
         }
-        private void Listen()
-            => Task.Run(() =>
+        public void Connect()
+        {
+            if (!this.IsConnected)
             {
-                try
+                this.IsConnected = true;
+                Task.Run(() =>
                 {
-                    while (true)
+                    try
                     {
-                        var data = reader.ReadLine();
-                        if (data != null & data.Trim() != string.Empty)
-                            this.OnReceived?.Invoke(this, new ReceiveEventArgs(data));
+                        this.OnConnecting?.Invoke(this);
+                        while (true)
+                        {
+                            var data = reader.ReadLine();
+                            if (data != null & data.Trim().Equals(string.Empty))
+                                this.OnReceived?.Invoke(this, new ReceiveEventArgs(data));
+                        }
                     }
-                }
-                catch
-                {
-                    this.Close();
-                }
-            }, this.token.Token);
-    }
+                    catch
+                    {
+                        this.Disconnect();
+                    }
+                }, this.token.Token);
+            }
+        }
 
+    }
 }
 

@@ -11,7 +11,8 @@ namespace Eylis.Core
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
-
+    using Newtonsoft.Json;
+    using System.IO;
     class EylisHostConsole : EylisHost
     {
         [DllImport("Kernel32")]
@@ -29,27 +30,71 @@ namespace Eylis.Core
         internal readonly IEnumerable<string> methodNameList;
         internal readonly Dictionary<string, Action> methods;
 
-        internal void KickOutAll()
+        private void KickOut()
         {
-            for (int i = 0; i < this.Count; this[i++].Close()) ;
+            this.UserList();
+            Console.Write("Select id :");
+            var us = Console.ReadLine()
+                            .Select(x => char.IsDigit(x) ? x.ToString() : " ")
+                            .Aggregate((x, y) => x += y)
+                            .Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(v => int.TryParse(v.Trim(), out int q) & q < this.Count? q : -1)
+                            .Where(v => v != -1);
+            Console.Write("Input 'Y' to kick : ");
+            if (Console.ReadKey().Key == ConsoleKey.Y)
+            {
+                foreach (var u in us)
+                    this[u].Disconnect();
+                Console.WriteLine("\nAll kicked out!");
+            }
         }
-        internal void WhatIsMyIP()
+        private void Unblock()
+        {
+
+        }
+        private void Block()
+        {
+            this.UserList();
+            Console.Write("Input id :");
+            var msg3 = Console.ReadLine();
+
+            if (int.TryParse(msg3, out int x) & x < this.Count)
+            {
+                Console.Write("Input 'Y' to block : ");
+                if (Console.ReadKey().Key == ConsoleKey.Y)
+                {
+                    File.AppendText(this[x].RemoteEndPoint.ToString());
+                    this[x].Disconnect();
+                    Console.WriteLine("\nUser blocked !");
+                }
+            }
+        }
+
+        private void KickOutAll()
+        {
+            Console.Write("Input 'Y' to kick all: ");
+            if (Console.ReadKey().Key == ConsoleKey.Y)
+            {
+                for (int i = 0; i < this.Count; this[i++].Disconnect()) ;
+                Console.WriteLine("All kicked out!");
+            }
+        }
+        private void WhatIsMyIP()
             => Console.WriteLine($"IP Address : {(new WebClient().DownloadStringTaskAsync("https://api.ipify.org").Result)}");
-        internal void Clear()
+        private void Clear()
             => Console.Clear();
-        internal void OpenConfig()
+        private void OpenConfig()
             => Process.Start("notepad", Environment.CurrentDirectory + "//" + EylisConfig.path);
-        internal void OpenLog()
+        private void OpenLog()
             => Process.Start("notepad", Environment.CurrentDirectory + "//host.log");
-        internal void Exit()
+        private void Exit()
             => Environment.Exit(0);
-        internal void UserList()
+        private void UserList()
         {
             Console.WriteLine($"Online User : {this.Count}");
-            foreach (var client in this)
-                Console.WriteLine($"    [{client.RemoteEndPoint}] Uid:{client.UID}");
+            for (int i = 0 ; i < this.Count; Console.WriteLine($"    [ID: {i.ToString().PadRight(3)}] : {this[i++].RemoteEndPoint}")) ;
         }
-        internal void Broadcast()
+        private void Broadcast()
         {
             Console.Write("Input message :");
             var msg = Console.ReadLine();
@@ -60,18 +105,17 @@ namespace Eylis.Core
                 Console.WriteLine("\nMessage sent !");
             }
         }
-        internal void Multicast()
+        private void Multicast()
         {
             Console.Write("Input message :");
             var msg = Console.ReadLine();
-            for (int i = 0; i < this.Count; i++)
-            {
-                Console.WriteLine($"    [Id : {i.ToString().PadRight(3)}] => {this[i].RemoteEndPoint}");
-            }
+            this.UserList();
             Console.Write("Select id :");
             var us = Console.ReadLine()
-                            .Split(',')
-                            .Select(v => int.TryParse(v.Trim(), out int q) ? this[q] : null)
+                            .Select(x => char.IsDigit(x) ? x.ToString() : " ")
+                            .Aggregate((x, y) => x += (y))
+                            .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(v => int.TryParse(v.Trim(), out int q) & q < this.Count? this[q] : null)
                             .Where(v => v != null);
             Console.Write("Input 'Y' to send : ");
             if (Console.ReadKey().Key == ConsoleKey.Y)
@@ -80,18 +124,15 @@ namespace Eylis.Core
                 Console.WriteLine("\nMessage sent !");
             }
         }
-        internal void Unicast()
+        private void Unicast()
         {
             Console.Write("Input message :");
             var msg2 = Console.ReadLine();
-            for (int i = 0; i < this.Count; i++)
-            {
-                Console.WriteLine($"    [Id : {i.ToString().PadRight(3)}] => {this[i].RemoteEndPoint}");
-            }
+            this.UserList();
             Console.Write("Input id :");
             var msg3 = Console.ReadLine();
-            int x = 0;
-            if (int.TryParse(msg3, out x))
+
+            if (int.TryParse(msg3, out int x) & x < this.Count)
             {
                 Console.Write("Input 'Y' to send : ");
                 if (Console.ReadKey().Key == ConsoleKey.Y)
@@ -101,10 +142,10 @@ namespace Eylis.Core
                 }
             }
         }
-        internal void ShowConfig()
+        private void ShowConfig()
             => Console.WriteLine($"Loading {EylisConfig.path}\n{config.ToString()}");
-        
-        internal void Help()
+
+        private void Help()
         {
             Console.BackgroundColor = ConsoleColor.DarkRed;
             foreach (var item in this.methodNameList)

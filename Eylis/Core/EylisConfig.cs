@@ -58,6 +58,7 @@ namespace Eylis.Core
             }
             else
             {
+
                 try
                 {
                     return JsonConvert.DeserializeObject<EylisConfig>(File.ReadAllText(path));

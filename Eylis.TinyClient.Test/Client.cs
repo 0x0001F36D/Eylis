@@ -8,8 +8,6 @@ namespace Eylis.TinyClient.Test
     {
         public static void Main()
         {
-            try
-            {
                 var user = EylisUser.Connect(new EylisConfig("lollipo.pw"), (sender, e) => { Console.WriteLine(e.Message.ToString()); });
                 while (true)
                 {
@@ -18,11 +16,7 @@ namespace Eylis.TinyClient.Test
                     user.Send(msg);
                 }
                 Console.ReadKey();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+           
             Console.ReadKey();
 
         }

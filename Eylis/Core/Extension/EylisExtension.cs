@@ -17,17 +17,16 @@ namespace Eylis.Core.Extension
         }
 
 
-        public static TLog WriteLog<TLog>(this TLog history, bool write2log = false, string path = "host.log")
-            => WriteLog(history, x => x.ToString() , write2log,path);
+        public static TLog WriteLog<TLog>(this TLog history,string path = "host.log")
+            => WriteLog(history, x => x.ToString(),path);
 
-        public static TLog WriteLog<TLog>(this TLog history, Func<TLog, string> displayformat, bool write2log = false, string path = "host.log")
+        public static TLog WriteLog<TLog>(this TLog history, Func<TLog, string> displayformat, string path = "host.log")
         {
             var msg = $"[{DateTime.Now}] : { displayformat(history)}";
-            if (write2log)
-                using (var sw = new StreamWriter(path, true, Encoding.UTF8))
-                {
-                    sw.WriteLine(msg);
-                }
+            using (var sw = new StreamWriter(path, true, Encoding.UTF8))
+            {
+                sw.WriteLine(msg);
+            }
             Console.WriteLine(msg);
             return history;
         }
