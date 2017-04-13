@@ -39,6 +39,7 @@ namespace Eylis.Core
         public delegate void ReceiveEventHandler(EylisUser sender, ReceiveEventArgs e);
         internal event ReceiveEventHandler OnReceived;
         
+
         public static EylisUser Connect(EylisConfig config , ReceiveEventHandler onReceived = null)
         {
             var tcpClient = new TcpClient();
@@ -69,8 +70,15 @@ namespace Eylis.Core
         private TcpClient client;
         public void Send(EylisMessage message)
         {
-            writer.WriteLine(message);
-            writer.Flush();
+            try
+            {
+                writer.WriteLine(message);
+                writer.Flush();
+            }
+            catch
+            {
+                this.Close();
+            }
         }
         public void Close()
         {
