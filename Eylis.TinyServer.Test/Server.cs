@@ -22,7 +22,7 @@ namespace Eylis.TinyServer.Test
         static void Main(string[] args)
         {
             var host = new EylisHostConsole();
-            host.Main();
+            host.Start();
 
         }
 

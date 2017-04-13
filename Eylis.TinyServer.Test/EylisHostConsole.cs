@@ -137,19 +137,15 @@ namespace Eylis.Core
 
         public Action this[string commmand]
             =>this.methods.TryGetValue(commmand.ToLower(),out Action v) ? v:error;
-        
-        public void Main()
-        {
-            this.Start();
 
+        public override void Start()
+        {
+            base.Start();
             Gate:
-           /* var tmp = Console.ReadKey();
-            if (tmp.Key == ConsoleKey.Enter)
-                goto Gate;
-            tmp.KeyChar +*/
             this[Console.ReadLine().TrimEnd().ToLower()]();
             goto Gate;
         }
+        
 
     }
 }

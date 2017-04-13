@@ -45,7 +45,7 @@ namespace Eylis.Core
             this.host = new TcpListener(IPAddress.Any, this.config.Port);
             this.token = new CancellationTokenSource();
         }
-        public void Start()
+        public virtual void Start()
         {
             this.host.Start();
             var listenTask = new Task(() =>
@@ -78,7 +78,7 @@ namespace Eylis.Core
             listenTask.Start();
             "[Server] Start.".WriteLog(this.config.EnableLogger);
         }
-        public void Stop()
+        public virtual void Stop()
         {
             if (!this.token.IsCancellationRequested)
                 this.token.Cancel(false);
@@ -87,14 +87,14 @@ namespace Eylis.Core
         }
         
 
-        public void Unicast(EylisMessage message, EylisUser user)
+        public virtual void Unicast(EylisMessage message, EylisUser user)
             => this.users.FirstOrDefault(x => x.Equals(user))?.Send(message);
 
-        public void Multicast(EylisMessage message, Func<EylisUser, bool> selector)
+        public virtual void Multicast(EylisMessage message, Func<EylisUser, bool> selector)
             => this.users.Where(selector).ForEach(u => u.Send(message));
        
 
-        public void Broadcast(EylisMessage message)
+        public virtual void Broadcast(EylisMessage message)
             => this.users.ForEach(user => user.Send(message));
 
         public IEnumerator<EylisUser> GetEnumerator()
