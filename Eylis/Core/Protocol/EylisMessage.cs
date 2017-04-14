@@ -13,9 +13,13 @@ namespace Eylis.Core.Protocol
             => new EylisMessage(l.Data.Concat(r.Data).ToArray());
 
         public byte[] Data { get; private set; }
-        public Encoding Encoding => Encoding.UTF8;
+
+        public Encoding Encoding
+            => Encoding.UTF8;
+
         public static implicit operator EylisMessage(string message)
             => new EylisMessage(Encoding.UTF8.GetBytes(message));
+
         public static implicit operator EylisMessage(byte[] data)
             => new EylisMessage(data);
 
@@ -25,6 +29,7 @@ namespace Eylis.Core.Protocol
                 throw new ArgumentNullException(nameof(data));
             this.Data = data;
         }
+
         public override string ToString()
             => this.Encoding.GetString(this.Data);
 

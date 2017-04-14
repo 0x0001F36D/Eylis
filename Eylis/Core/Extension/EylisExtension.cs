@@ -16,19 +16,6 @@ namespace Eylis.Core.Extension
                 action(item);
         }
 
-
-        public static TLog WriteLog<TLog>(this TLog history,string path = "host.log")
-            => WriteLog(history, x => x.ToString(),path);
-
-        public static TLog WriteLog<TLog>(this TLog history, Func<TLog, string> displayformat, string path = "host.log")
-        {
-            var msg = $"[{DateTime.Now}] : { displayformat(history)}";
-            using (var sw = new StreamWriter(path, true, Encoding.UTF8))
-            {
-                sw.WriteLine(msg);
-            }
-            Console.WriteLine(msg);
-            return history;
-        }
+        
     }
 }

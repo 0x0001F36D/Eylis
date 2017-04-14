@@ -41,6 +41,7 @@ namespace Eylis.Core
             var tcpClient = new TcpClient();
             tcpClient.Connect(config.Host, config.Port);
             var user = new EylisUser(tcpClient,onReceive,onConnecting,onDisconnecting);
+
             return user;
         }
 
@@ -103,7 +104,7 @@ namespace Eylis.Core
                         while (true)
                         {
                             var data = reader.ReadLine();
-                            if (data != null & data.Trim().Equals(string.Empty))
+                            if (data != null & !data.Trim().Equals(string.Empty))
                                 this.OnReceived?.Invoke(this, new ReceiveEventArgs(data));
                         }
                     }

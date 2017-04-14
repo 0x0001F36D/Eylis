@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // 組件的一般資訊是由下列的屬性集控制。
 // 變更這些屬性的值即可修改組件的相關
 // 資訊。
-[assembly: AssemblyTitle("EylisProtocol.TinyServer.Test")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("Eylis.TinyServer")]
+[assembly: AssemblyDescription("Lightweight TCP proxy")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Microsoft")]
-[assembly: AssemblyProduct("EylisProtocol.TinyServer.Test")]
-[assembly: AssemblyCopyright("Copyright © Microsoft 2017")]
+[assembly: AssemblyCompany("Viyrex")]
+[assembly: AssemblyProduct("Eylis.TinyServer")]
+[assembly: AssemblyCopyright("Copyright © 2017 Viyrex. All Rights Reserved")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // 您可以指定所有的值，或將組建編號或修訂編號設為預設值
 // 指定為預設值: 
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("2.0.0.0")]
+[assembly: AssemblyFileVersion("2.0.0.0")]

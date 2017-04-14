@@ -29,6 +29,7 @@ namespace Eylis.Core
                                     .GetActiveTcpListeners()
                                     .Any(x => x.Address.Equals(IPAddress.Any) & x.Port == port);
 
+        
 
         public EylisHost(EylisConfig config)
         {
@@ -36,8 +37,7 @@ namespace Eylis.Core
 
             if (this.Detect(this.config.Port))
             {
-                if (this.config.EnableLogger)
-                    $"Port:{this.config.Port} 已被占用".WriteLog();
+                this.config.WriteLog($"Port:{this.config.Port} 已被占用");
                 Console.ReadKey();
                 Environment.Exit(0);
             }
@@ -56,22 +56,12 @@ namespace Eylis.Core
                     while (true)
                     {
                         var user = new EylisUser(this.host.AcceptTcpClient());
-                        user.OnReceived += (sender, e) =>
-                            this.Multicast(e.Message, x => !x.Equals(sender));
-                        user.OnConnecting += (sender) =>
-                            this.users.Add(sender);
-                        user.OnDisconnecting += (sender) =>
-                            this.users.Remove(sender);
 
-                        if (this.config.EnableLogger)
-                        {
-                            user.OnReceived += (sender, e) =>
-                                 e.Message.WriteLog(v => $"[{sender.RemoteEndPoint}] : {v.ToString()}");
-                            user.OnConnecting += (sender) =>
-                                sender.WriteLog(x => $"[Server] <{x.RemoteEndPoint}> offline.");
-                            user.OnDisconnecting += (sender) =>
-                                sender.WriteLog(x => $"[Server] <{x.RemoteEndPoint}> online.");
-                        }
+                        user.OnReceived += (sender, e) =>this.Multicast(e.Message, x => !x.Equals(sender));
+                        user.OnConnecting += (sender) =>this.users.Add(sender);
+                        user.OnDisconnecting += (sender) =>this.users.Remove(sender);
+                        this.config.Setup(user);
+
                         user.Connect();
                     }
                 }
@@ -81,16 +71,15 @@ namespace Eylis.Core
                 }
             }, token.Token);
             listenTask.Start();
-            if (this.config.EnableLogger)
-                "[Server] Start.".WriteLog();
+            this.config.WriteLog("[Server] Start.");
         }
         public virtual void Stop()
         {
             if (!this.token.IsCancellationRequested)
                 this.token.Cancel(false);
             this.host.Stop();
-            if (this.config.EnableLogger)
-                "[Server] Stop.".WriteLog();
+
+            this.config.WriteLog("[Server] Stop.");
         }
 
         public virtual void Unicast(EylisMessage message, EylisUser user)
