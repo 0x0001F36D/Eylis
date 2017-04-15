@@ -38,7 +38,6 @@ namespace Eylis.Core
             if (this.Detect(this.config.Port))
             {
                 this.config.WriteLog($"Port:{this.config.Port} 已被占用");
-                Console.ReadKey();
                 Environment.Exit(0);
             }
 

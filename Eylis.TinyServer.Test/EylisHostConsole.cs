@@ -72,7 +72,7 @@ namespace Eylis.Core
         private void OpenConfig()
             => Process.Start("notepad", Environment.CurrentDirectory + "//" + EylisConfig.config);
         private void OpenLog()
-            => Process.Start("notepad", Environment.CurrentDirectory + "//host.log");
+            => Process.Start("notepad", Environment.CurrentDirectory + "//" + EylisConfig.log);
         private void Exit()
             => Environment.Exit(0);
         private void UserList()
