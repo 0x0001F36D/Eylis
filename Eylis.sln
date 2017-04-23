@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.9
+VisualStudioVersion = 15.0.26403.3
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eylis", "Eylis\Eylis.csproj", "{15406210-5DBE-4113-BCFA-A5AAE8CC2542}"
 EndProject
@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eylis.TinyServer.Test", "Ey
 	ProjectSection(ProjectDependencies) = postProject
 		{15406210-5DBE-4113-BCFA-A5AAE8CC2542} = {15406210-5DBE-4113-BCFA-A5AAE8CC2542}
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Eylis.DAL", "Eylis.DAL\Eylis.DAL.csproj", "{67DBA722-C2EF-420A-9F8C-014BF1F1837D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{BF6438BF-FD10-4C6E-8277-68955334BF1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF6438BF-FD10-4C6E-8277-68955334BF1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF6438BF-FD10-4C6E-8277-68955334BF1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67DBA722-C2EF-420A-9F8C-014BF1F1837D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67DBA722-C2EF-420A-9F8C-014BF1F1837D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67DBA722-C2EF-420A-9F8C-014BF1F1837D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67DBA722-C2EF-420A-9F8C-014BF1F1837D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

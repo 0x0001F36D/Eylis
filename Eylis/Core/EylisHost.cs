@@ -13,6 +13,8 @@ namespace Eylis.Core
     using Eylis.Core.Protocol;
     using Eylis.Core.Extension;
 
+
+
     public class EylisHost : IReadOnlyCollection<EylisUser>, IReadOnlyList<EylisUser>
     {
         private HashSet<EylisUser> users;
@@ -29,7 +31,8 @@ namespace Eylis.Core
                                     .GetActiveTcpListeners()
                                     .Any(x => x.Address.Equals(IPAddress.Any) & x.Port == port);
 
-        
+     //   public delegate void StartEventHandler(object sender, EventArgs e);
+       // public event StartEventHandler OnStart;
 
         public EylisHost(EylisConfig config)
         {
@@ -56,9 +59,9 @@ namespace Eylis.Core
                     {
                         var user = new EylisUser(this.host.AcceptTcpClient());
 
-                        user.OnReceived += (sender, e) =>this.Multicast(e.Message, x => !x.Equals(sender));
-                        user.OnConnecting += (sender) =>this.users.Add(sender);
-                        user.OnDisconnecting += (sender) =>this.users.Remove(sender);
+                        user.OnReceived += (sender, e) => this.Multicast(e.Message, x => !x.Equals(sender));
+                        user.OnConnect += (sender) => this.users.Add(sender);
+                        user.OnDisconnect += (sender) => this.users.Remove(sender);
                         this.config.Setup(user);
 
                         user.Connect();

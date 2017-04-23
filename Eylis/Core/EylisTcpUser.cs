@@ -11,7 +11,7 @@ namespace Eylis.Core
     using System.Threading;
     using System.IO;
     using Eylis.Core.Protocol;
-
+    
     public class EylisUser
     {
         public class ReceiveEventArgs : EventArgs
@@ -22,36 +22,41 @@ namespace Eylis.Core
         }
 
         public override int GetHashCode()
-            => this.Uid.GetHashCode();
+            => this.client.Client.RemoteEndPoint.GetHashCode() + this.client.Client.LocalEndPoint.GetHashCode();
 
         public override bool Equals(object obj)
             => (obj is EylisUser) ? (obj as EylisUser).GetHashCode() == this.GetHashCode() : base.Equals(this);
 
         public delegate void ConnectEventHandler(EylisUser user);
-        internal event ConnectEventHandler OnConnecting;
+        internal event ConnectEventHandler OnConnect;
 
         public delegate void DisconnectEventHandler(EylisUser user);
-        internal event DisconnectEventHandler OnDisconnecting;
+        internal event DisconnectEventHandler OnDisconnect;
 
         public delegate void ReceiveEventHandler(EylisUser sender, ReceiveEventArgs e);
         internal event ReceiveEventHandler OnReceived;
 
-        public static EylisUser Connect(EylisConfig config, ReceiveEventHandler onReceive = null, ConnectEventHandler onConnecting = null , DisconnectEventHandler onDisconnecting = null )
+        public static EylisUser Bind(EylisConfig config, ReceiveEventHandler onReceive = null, ConnectEventHandler onConnecting = null , DisconnectEventHandler onDisconnecting = null )
         {
             var tcpClient = new TcpClient();
-            tcpClient.Connect(config.Host, config.Port);
+            try
+            {
+                tcpClient.Connect(config.Host, config.Port);
+            }
+            catch(SocketException s)
+            {
+                throw s.InnerException;
+            }
             var user = new EylisUser(tcpClient,onReceive,onConnecting,onDisconnecting);
-
             return user;
         }
 
         internal EylisUser(TcpClient client, ReceiveEventHandler onReceive = null, ConnectEventHandler onConnecting = null, DisconnectEventHandler onDisconnecting = null)
         {
             this.OnReceived += onReceive;
-            this.OnConnecting += onConnecting;
-            this.OnDisconnecting += onDisconnecting;
+            this.OnConnect += onConnecting;
+            this.OnDisconnect += onDisconnecting;
             this.IsConnected = false;
-            this.Uid = Guid.NewGuid();
             this.client = client;
             this.ns = client.GetStream();
             this.reader = new StreamReader(this.ns, this.Encoding);
@@ -60,7 +65,7 @@ namespace Eylis.Core
         }
 
         public bool IsConnected { get; private set; }
-        public readonly Guid Uid;
+
         public EndPoint RemoteEndPoint => this.client?.Client?.RemoteEndPoint;
         public Encoding Encoding => Encoding.UTF8;
 
@@ -84,7 +89,7 @@ namespace Eylis.Core
         }
         public void Disconnect()
         {
-            this.OnDisconnecting?.Invoke(this);
+            this.OnDisconnect?.Invoke(this);
             if (!this.token.IsCancellationRequested)
                 this.token.Cancel(false);
             if (this.client.Connected)
@@ -100,15 +105,15 @@ namespace Eylis.Core
                 {
                     try
                     {
-                        this.OnConnecting?.Invoke(this);
+                        this.OnConnect?.Invoke(this);
                         while (true)
                         {
                             var data = reader.ReadLine();
-                            if (data != null & !data.Trim().Equals(string.Empty))
+                            if (!string.IsNullOrWhiteSpace(data))
                                 this.OnReceived?.Invoke(this, new ReceiveEventArgs(data));
                         }
                     }
-                    catch
+                    finally
                     {
                         this.Disconnect();
                     }

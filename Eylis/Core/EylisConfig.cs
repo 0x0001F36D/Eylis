@@ -88,8 +88,8 @@ namespace Eylis.Core
         
         internal void Setup(EylisUser user)
         {
-            user.OnConnecting += OnConnecting;
-            user.OnDisconnecting += OnDisconnecting;
+            user.OnConnect += OnConnecting;
+            user.OnDisconnect += OnDisconnecting;
             user.OnReceived += OnReceived;
         }
 

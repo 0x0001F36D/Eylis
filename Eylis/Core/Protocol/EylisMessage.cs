@@ -23,6 +23,8 @@ namespace Eylis.Core.Protocol
         public static implicit operator EylisMessage(byte[] data)
             => new EylisMessage(data);
 
+        public int ByteLength => this.Data.Length;
+
         public EylisMessage(byte[] data)
         {
             if (data == null)

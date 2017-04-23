@@ -34,7 +34,11 @@
       <HintPath>..\packages\Newtonsoft.Json.10.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
+    <Reference Include="System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.3.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -46,8 +50,8 @@
     <Compile Include="Core\Extension\EylisExtension.cs" />
     <Compile Include="Core\EylisHost.cs" />
     <Compile Include="Core\EylisConfig.cs" />
+    <Compile Include="Core\EylisTcpUser.cs" />
     <Compile Include="Core\Protocol\EylisMessage.cs" />
-    <Compile Include="Core\EylisUser.cs" />
     <Compile Include="Plugin\Command\Common\Enum.cs" />
     <Compile Include="Plugin\Package\Bind.cs" />
     <Compile Include="Plugin\Package\Chat.cs" />
@@ -56,6 +60,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
