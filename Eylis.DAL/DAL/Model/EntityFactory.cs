@@ -5,16 +5,23 @@ namespace Eylis.DAL.Model
     using System.Data.Entity;
     using System.Linq;
     using System.Configuration;
+    using System;
+    using System.Reflection;
+    using System.Collections;
+    using System.Linq.Expressions;
+    using System.ComponentModel;
+    using System.Data.Entity.Infrastructure;
+    using System.Data.Entity.ModelConfiguration.Conventions;
 
-    public sealed class Entity<TPoco> : DbContext where TPoco : PocoBase
-    {
-        public static Entity<TPoco> Load(string password = null)
+    public sealed class EntityFactory<TEntity> : DbContext where TEntity : EntityBase ,new()
+    { 
+        public static EntityFactory<TEntity> Load(string password = null)
         {
-            var name = typeof(TPoco).Name;
+            var name = typeof(TEntity).Name;
             var connectionStrings = string.Join(";", new Dictionary<string, string>
             {
-                ["Data Source"] = name + ".sdf",
-                ["Password"] = password ?? typeof(TPoco).GUID.ToString()
+                ["Data Source"] = name ,
+                ["Password"] = password ?? typeof(TEntity).GUID.ToString()
             }
             .Select(x => $"{x.Key}={x.Value}"));
             var config = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -25,16 +32,17 @@ namespace Eylis.DAL.Model
                 config.Save();
                 ConfigurationManager.RefreshSection(nameof(connectionStrings));
             }
-            return new Entity<TPoco>(connectionStrings);
+            return new EntityFactory<TEntity>(connectionStrings);
         }
 
-        private Entity(string connectionString) : base(connectionString)
+        private EntityFactory(string connectionString) : base(connectionString)
         {
-            
         }
-
-        public DbSet<TPoco> EntityList { get; set; }
-
-        public int Count => this.EntityList.Count();
+ 
+        public TEntity Generate()
+            => new TEntity { Id = this.EntityList.Count() };
+        
+        public IDbSet<TEntity> EntityList { get; set; }
+        
     }
 }

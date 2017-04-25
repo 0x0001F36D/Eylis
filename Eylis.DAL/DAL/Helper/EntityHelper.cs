@@ -2,16 +2,24 @@
 namespace Eylis.DAL.Helper
 {
     using Eylis.DAL.Model;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using System.Reflection;
 
     public static class EntityHelper
     {
-        public static TPoco Generate<TPoco>(this Entity<TPoco> provider) where TPoco : PocoBase, new()
-            => PocoBase.Generate(provider);
+        public static IDictionary<string, object> Dump<TEntity>(this TEntity obj) where TEntity : EntityBase
+            => typeof(TEntity)
+                .GetProperties((BindingFlags)17301375)
+                .Aggregate(new Dictionary<string, object>
+                {
+                    [nameof(obj.Id)] = obj.Id
+                },
+                (dict, x) =>
+                {
+                    dict.Add(x.Name, x?.GetValue(obj));
+                    return dict;
+                });
         
     }
 }

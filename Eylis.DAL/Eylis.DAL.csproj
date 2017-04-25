@@ -7,7 +7,7 @@
     <ProjectGuid>{67DBA722-C2EF-420A-9F8C-014BF1F1837D}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Eylis.DAL</RootNamespace>
+    <RootNamespace>Eylis</RootNamespace>
     <AssemblyName>Eylis.DAL</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -59,8 +59,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DAL\Helper\EntityHelper.cs" />
-    <Compile Include="DAL\Model\Entity.cs" />
-    <Compile Include="DAL\Model\PocoBase.cs" />
+    <Compile Include="DAL\Model\EntityBaseCollection.cs" />
+    <Compile Include="DAL\Model\EntityFactory.cs" />
+    <Compile Include="DAL\Model\EntityBase.cs" />
+    <Compile Include="DAL\Model\SimpleObjects\PlayerInfo.cs" />
+    <Compile Include="DAL\Program.cs" />
+    <Compile Include="DAL\Validations\Validate.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
